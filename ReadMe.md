@@ -121,6 +121,15 @@ consumer client details
  ```
   >.\bin\windows\kafka-console-consumer.bat --bootstrap-server localhost:9092 --topic test
    ```  
-![Consumer](https://i.imgur.com/4ZuWzNW.png)   
+![Consumer](https://i.imgur.com/4ZuWzNW.png)  
+
+## Dive into Code:
+
+so far, we have done initial setup for running kafka in the window machine and set up simple producer & consumer example using kafka api. now we go into set up spring boot app for producer api for sending message to consumer.
+
+please follow this branch for next step:
+[Java Producer](https://github.com/parane/kafkaDemoV2/tree/1_Producer)
+
+
          
      
