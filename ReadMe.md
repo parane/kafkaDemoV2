@@ -127,9 +127,9 @@ RecordMetadata recordMeta = (RecordMetadata) producer.send(data).get();
 System.out.println("Message Offset : "+recordMeta.offset());
   ```
   
-- **Asynchronous send**w
+- **Asynchronous send**
  We call the send() method with a callback function, which gets triggered when it
  receives a response from the Kafka broker.
-  ``` 
+``` 
  producer.send(data,new ProducerCallback());
-   ```
+```
