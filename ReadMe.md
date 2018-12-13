@@ -44,9 +44,24 @@ Are we OK with accidentally duplicating messages? Are there any strict latency o
 
 code level sending message as following :
  ```
-kafkaTemplate.send(Topic, value);
+        Properties properties= new Properties();
+        properties.put("key.serializer","org.apache.kafka.common.serialization.StringSerializer");
+        properties.put("value.serializer","org.apache.kafka.common.serialization.StringSerializer");
+        properties.put("acks","all");
+        properties.put("bootstrap.servers","localhost:9092");
+        KafkaProducer<String,String > producer= new KafkaProducer<String, String>(properties);
+        ProducerRecord data = new ProducerRecord<String,String>("test","hello");
+        producer.send(data);
+        producer.close();
   ```
-
+  
+  or 
+  
+  simply using 
+   ```
+  kafkaSender.send(message); 
+ ```
+ 
 It contains two part. one is kafkaTemplate and other is sending msg
 
 ###### kafkaTemplate
@@ -89,3 +104,32 @@ Name of a class that will be used to serialize the keys of the records we will p
 Once we instantiate a producer, it is time to start sending messages. There are three
  primary methods of sending messages:
  
+ - **Fire-and-forget**
+ We send a message to the server and don’t really care if it arrives succesfully or
+ not.
+ ```
+ try {
+ producer.send(record);
+ } catch (Exception e) {
+ //catching up before sending exception, Those can be aSerializationException when it fails to serialize the message, a BufferExhaus
+tedException or TimeoutException if the buffer is full, or an InterruptException if the sending thread was interrupted
+ e.printStackTrace();
+ }
+
+ ```
+ 
+- **Synchronous send**
+ We send a message, the send() method returns a Future object, and we use get()
+ to wait on the future and see if the send() was successful or not.
+
+ ``` 
+RecordMetadata recordMeta = (RecordMetadata) producer.send(data).get();
+System.out.println("Message Offset : "+recordMeta.offset());
+  ```
+  
+- **Asynchronous send**w
+ We call the send() method with a callback function, which gets triggered when it
+ receives a response from the Kafka broker.
+  ``` 
+ producer.send(data,new ProducerCallback());
+   ```
