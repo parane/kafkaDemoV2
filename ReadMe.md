@@ -12,7 +12,7 @@ for running this spring boot app. follow this steps
 
 - maven build :
     ```
-    mvn clean build
+    mvn clean install
     ```
 - Running spring boot 
     ```
