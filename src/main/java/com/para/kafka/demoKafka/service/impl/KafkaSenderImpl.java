@@ -43,7 +43,7 @@ public class KafkaSenderImpl implements KafkaSender {
         Properties properties= new Properties();
         properties.put("key.serializer","org.apache.kafka.common.serialization.StringSerializer");
         properties.put("value.serializer","org.apache.kafka.common.serialization.StringSerializer");
-        properties.put("acks","all");
+        properties.put("acks","0");
         properties.put("bootstrap.servers","localhost:9092");
         KafkaProducer<String,String > producer= new KafkaProducer<String, String>(properties);
         ProducerRecord data = new ProducerRecord<String,String>("test","hello");
