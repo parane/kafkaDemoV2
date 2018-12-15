@@ -17,39 +17,12 @@ public class ApacheKafkaWebController {
     @Qualifier("kafkaSender")
     KafkaSender kafkaSender;
 
-    @Autowired
-    @Qualifier("kafkaSyncSender")
-    KafkaSender kafkaSyncSender;
 
-    @Autowired
-    @Qualifier("kafkaAsyncSender")
-    KafkaSender kafkaAsyncSender;
-
-
-    @GetMapping(value = "/producer")
-    public String producer(@RequestParam("message") String message) {
-        kafkaSender.send(message);
-
-        return "Message sent to the Kafka Topic  Successfully";
-    }
-
-    @GetMapping(value = "/bulk")
-    public String producerBulk() {
+    @GetMapping(value = "/schema/producer")
+    public String producer() {
         kafkaSender.sendBulk();
 
         return "Message sent to the Kafka Topic  Successfully";
     }
-    @GetMapping(value = "/sync")
-    public String producerSyncMsg() {
-        kafkaSyncSender.sendBulk();
 
-        return "Sync Message sent to the Kafka Topic  Successfully";
-    }
-
-    @GetMapping(value = "/async")
-    public String producerAsyncMsg() {
-        kafkaAsyncSender.sendBulk();
-
-        return "Async Message sent to the Kafka Topic  Successfully";
-    }
-}
+  }

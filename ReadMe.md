@@ -1,43 +1,83 @@
-# KAFKA DEMO - PRODUCER CONFIG
+# KAFKA DEMO - PRODUCER Serializers
 [![Build Status](https://travis-ci.org/joemccann/dillinger.svg?branch=master)](https://travis-ci.org/joemccann/dillinger)
 
-In here,  explore some config entries in kafka producer.
+#### Serializers
+Kafka message are send as byte array. but in our app we have handled different type of data which need to 
+be converted as byte array for sending kafka broker. for that we have used key and value serializer.
 
-As in previous section, we have seen some mandatory config entries like key.serializer, value.serializer, bootstrap.servers
-here we look into some configuring param which have siginificant impact on memory use , performance and reliability msg transfer
+In previous section, We have looked into send string message with kafka default serializer. 
+Now We look into some custom (ref : CustomerSerializer.java)serializer for sending customer object to kafka.
 
-1. **acks**
-how many partion replica must receive the record before the producer can consider the write sucessful. there are 3 allowed
-value:
-- **ack=0** producer not wait for reply from the broker, assume the msg was sent sucessfully. dont care error.
-- **ack=1** producer will receive a sucess  response from the broker the moment the leader replica received the msg.
-- **ack=all** the producer will receive a success response from the broker once all
-in-sync replicas received the message 
 
-2. **buffer.memory**
-This sets the amount of memory the producer will use to buffer messages waiting to
-be sent to brokers.
+Send Customer Object 
+```
+Properties properties= new Properties();
+        properties.put("key.serializer","org.apache.kafka.common.serialization.StringSerializer");
+        properties.put("value.serializer","com.para.kafka.demoKafka.util.CustomerSerializer");
+       properties.put("bootstrap.servers","localhost:9092");
 
-3. **compression.type**
-By default, messages are sent uncompressed. This parameter can be set to snappy,
-gzip, or lz4, in which case the corresponding compression algorithms will be used to
-compress the data before sending it to the brokers.
+        Customer c1 = new Customer(12,"Sin");
+        
+        KafkaProducer<String,Customer > producer= new KafkaProducer<String, Customer>(properties);
+        ProducerRecord data = new ProducerRecord<String,Customer>("test",c1);
+        producer.send(data);
+```
+so run in producer side: 
+```
+http://localhost:8888/kafka-web/schema/producer
+```
 
-4.**batch.size**
-  When multiple records are sent to the same partition, the producer will batch them
-  together. This parameter controls the amount of memory in bytes (not messages!)
-  that will be used for each batch.
+In kafka consumer side:
+![](https://i.imgur.com/SpiMErq.png)
 
-5.**linger.ms**
-  linger.ms controls the amount of time to wait for additional messages before sending
-  the current batch. KafkaProducer sends a batch of messages either when the current
-  batch is full or when the linger.ms limit is reached.
-  
-6.**max.in.flight.requests.per.connection**
-  This controls how many messages the producer will send to the server without
-  receiving responses.
-  
-7. **max.request.size**
-  This setting controls the size of a produce request sent by the producer. It caps both
-  the size of the largest message that can be sent and the number of messages that the
-  producer can send in one request.
+
+using custom serializer, has some draw back.you can see how fragile the code is. If we ever have too many customers, for example, and need to
+change customerID to Long, or if we ever decide to add a startDate field to Customer, we will have a serious issue in maintaining compatibility between old and new
+messages. Debugging compatibility issues between different versions of serializers
+ and deserializers is fairly challenging :(
+ 
+so It is recommend to use exsiting serializer uch as JSON, Apache Avro, Thrift, or Protobuf.
+
+#### Serializing Using Apache Avro
+
+Apache Avro is a language-neutral data serialization format.
+The scschema is usually described in JSON and the serialization is usually to binary files.
+
+
+although serializing to JSON is also supported. Avro assumes that the schema is present when reading and
+writing files, usually by embedding the schema in the files themselves.
+
+kafka mostly used apache avoro which has many adavantages  that when the application that is writing messages witches to a new schema, the applications reading the data can continue processing
+messages without requiring any change or update.
+
+Suppose the original schema was:
+```
+{
+"namespace": "customerManagement.avro",
+"type": "record",
+"name": "Customer",
+"fields": [
+            {"name": "id", "type": "int"},
+            {"name": "name", "type": "string""},
+            {"name": "faxNumber", "type": ["null", "string"], "default": "null"}
+           ]
+}
+```
+then after we changed to as 
+```
+{"namespace": "customerManagement.avro",
+"type": "record",
+"name": "Customer",
+"fields": [
+    {"name": "id", "type": "int"},
+    {"name": "name", "type": "string"},
+    {"name": "email", "type": ["null", "string"], "default": "null"}
+]
+}
+```
+
+Now, after upgrading to the new version, old records will contain “faxNumber” and
+new records will contain “email.” In many organizations, upgrades are done slowly
+and over many months. So we need to consider how preupgrade applications that still
+use the fax numbers and postupgrade applications that use email will be able to handle
+all the events in Kafka.

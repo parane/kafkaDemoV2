@@ -1,5 +1,6 @@
 package com.para.kafka.demoKafka.service.impl;
 
+import com.para.kafka.demoKafka.dto.Customer;
 import com.para.kafka.demoKafka.service.KafkaSender;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -42,11 +43,13 @@ public class KafkaSenderImpl implements KafkaSender {
     public void sendBulk() {
         Properties properties= new Properties();
         properties.put("key.serializer","org.apache.kafka.common.serialization.StringSerializer");
-        properties.put("value.serializer","org.apache.kafka.common.serialization.StringSerializer");
+        properties.put("value.serializer","com.para.kafka.demoKafka.util.CustomerSerializer");
         properties.put("acks","0");
         properties.put("bootstrap.servers","localhost:9092");
-        KafkaProducer<String,String > producer= new KafkaProducer<String, String>(properties);
-        ProducerRecord data = new ProducerRecord<String,String>("test","hello");
+
+        Customer c1 = new Customer(12,"Sin");
+        KafkaProducer<String,Customer > producer= new KafkaProducer<String, Customer>(properties);
+        ProducerRecord data = new ProducerRecord<String,Customer>("test",c1);
         producer.send(data);
         producer.close();
     }
