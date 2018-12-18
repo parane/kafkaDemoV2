@@ -81,3 +81,71 @@ new records will contain “email.” In many organizations, upgrades are done s
 and over many months. So we need to consider how preupgrade applications that still
 use the fax numbers and postupgrade applications that use email will be able to handle
 all the events in Kafka.
+
+#### Using Avro Records with Kafka
+
+Unlike Avro files, where storing the entire schema in the data file is associated with a
+fairly reasonable overhead, storing the entire schema in each record will usually more
+than double the record size. However, Avro still requires the entire schema to be
+present when reading the record, so we need to locate the schema elsewhere. To achieve
+this, we follow a common architecture pattern and use a **Schema Registry**.
+
+
+#### Schema Registry
+
+The idea is to store all the schemas used to write data to Kafka in the registry. Then
+we simply store the identifier for the schema in the record we produce to Kafka. The
+consumers can then use the identifier to pull the record out of the schema
+
+![](https://i.imgur.com/CEAM6qU.png)
+
+!! Schema Registry server (official) is not supported in window
+if you want to run plz use this batch file: https://github.com/renukaradhya/confluentplatform/tree/master/bin/windows
+
+Running Registry server localhost:8081
+
+![](https://i.imgur.com/CGaHTA4.png)
+
+Running Avro Serialized message
+
+```
+http://localhost:8888/kafka-web/schema/avro/producer
+```
+Avro schema define in resources/avro
+
+```
+{
+"namespace": "customerManagement.avro",
+"type": "record",
+"name": "CustomerAvro",
+"fields": [
+{"name": "id", "type": "int"},
+{"name": "name", "type": "string"},
+{"name": "email", "type": ["null", "string"], "default": "null"}
+]
+}
+```
+//generate CustomerAvro in src location
+ ```
+mvn generate-sources
+ ```
+
+```
+        properties.put("key.serializer","org.apache.kafka.common.serialization.StringSerializer");
+        properties.put("value.serializer",KafkaAvroSerializer.class.getName());
+        properties.put("bootstrap.servers","localhost:9092");
+        properties.setProperty("schema.registry.url", registry);
+
+
+        KafkaProducer<String, customerManagement.avro.CustomerAvro> producer= new KafkaProducer<String, customerManagement.avro.CustomerAvro>(properties);
+        customerManagement.avro.CustomerAvro avroCustomer = customerManagement.avro.CustomerAvro.newBuilder()
+     
+        ProducerRecord data = new ProducerRecord<String,customerManagement.avro.CustomerAvro>("test",avroCustomer);
+        producer.send(data);
+        
+```
+
+kafka-avro consumer also not supported in window
+
+There is one option for run it in docker for verified the avro msg processed
+in consumer side also.

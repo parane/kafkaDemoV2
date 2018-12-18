@@ -18,9 +18,20 @@ public class ApacheKafkaWebController {
     KafkaSender kafkaSender;
 
 
+    @Autowired
+    @Qualifier("kafkaAvroSerialSender")
+    KafkaSender kafkaAvroSerialSender;
+
     @GetMapping(value = "/schema/producer")
     public String producer() {
         kafkaSender.sendBulk();
+
+        return "Message sent to the Kafka Topic  Successfully";
+    }
+
+    @GetMapping(value = "/schema/avro/producer")
+    public String avroProducer() {
+        kafkaAvroSerialSender.sendBulk();
 
         return "Message sent to the Kafka Topic  Successfully";
     }
