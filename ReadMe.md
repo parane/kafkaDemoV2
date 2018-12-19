@@ -1,4 +1,4 @@
-# KAFKA DEMO - PRODUCER Serializers
+# KAFKA DEMO - PRODUCER Partition
 [![Build Status](https://travis-ci.org/joemccann/dillinger.svg?branch=master)](https://travis-ci.org/joemccann/dillinger)
 
 #### Producer Partition 
