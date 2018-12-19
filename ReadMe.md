@@ -12,7 +12,7 @@ for running this spring boot app. follow this steps
 
 - maven build :
     ```
-    mvn clean install
+    mvn clean build
     ```
 - Running spring boot 
     ```
@@ -133,3 +133,4 @@ System.out.println("Message Offset : "+recordMeta.offset());
 ``` 
  producer.send(data,new ProducerCallback());
 ```
+ ###### ![Next Step](https://github.com/parane/kafkaDemoV2/tree/2_producer_config)
