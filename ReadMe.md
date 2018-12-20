@@ -42,4 +42,4 @@ compress the data before sending it to the brokers.
   the size of the largest message that can be sent and the number of messages that the
   producer can send in one request.
   
-[Next Topic Producer Schema]: https://github.com/parane/kafkaDemoV2/tree/3_producer_schema
+[Next Topic Producer Schema](https://github.com/parane/kafkaDemoV2/tree/3_producer_schema)
