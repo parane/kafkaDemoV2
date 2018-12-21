@@ -1,6 +1,7 @@
 package com.para.kafka.demoKafka.controller;
 
 
+import com.para.kafka.demoKafka.service.KafkaReceiver;
 import com.para.kafka.demoKafka.service.KafkaSender;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -17,18 +18,20 @@ public class ApacheKafkaWebController {
     @Qualifier("kafkaSender")
     KafkaSender kafkaSender;
 
-    @GetMapping(value = "/partition/producer")
+    @Autowired
+    KafkaReceiver kafkaReceiver;
+
+    @GetMapping(value = "/send/producer")
     public String producer() {
         kafkaSender.sendBulk();
 
         return "Message sent to the Kafka Topic  Successfully";
     }
 
-    @GetMapping(value = "/default/producer")
-    public String producerDefault() {
-        kafkaSender.send("ss");
+    @GetMapping(value = "/receive/consumer")
+    public String consumer() {
+        kafkaReceiver.receive();
 
-        return "Message sent to the Kafka Topic  Successfully";
+        return "Terminated ";
     }
-
   }

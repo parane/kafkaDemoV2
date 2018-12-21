@@ -1,0 +1,5 @@
+package com.para.kafka.demoKafka.service;
+
+public interface KafkaReceiver {
+    public void receive();
+}

@@ -52,25 +52,12 @@ public class KafkaSenderImpl implements KafkaSender {
     public void sendBulk() {
         Properties properties= new Properties();
         properties.put("key.serializer","org.apache.kafka.common.serialization.StringSerializer");
-        properties.put("value.serializer","com.para.kafka.demoKafka.util.CustomerSerializer");
-        properties.put("acks","0");
+        properties.put("value.serializer","org.apache.kafka.common.serialization.StringSerializer");
+        properties.put("acks","all");
         properties.put("bootstrap.servers","localhost:9092");
-        properties.put("partitioner.class",
-                "com.para.kafka.demoKafka.util.CustomPartition");
-        Customer c1 = new Customer(12,"Sin");
-        KafkaProducer<String,Customer > producer= new KafkaProducer<String, Customer>(properties);
-        for(int i=0;i<5;i++){
-            ProducerRecord data = new ProducerRecord<String,Customer>("test3","key1",c1);
-            try {
-                RecordMetadata recordMeta = (RecordMetadata) producer.send(data).get();
-                System.out.println(recordMeta.partition());
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            }
-        }
-
+        KafkaProducer<String,String > producer= new KafkaProducer<String, String>(properties);
+        ProducerRecord data = new ProducerRecord<String,String>("test","hello");
+        producer.send(data);
         producer.close();
     }
 }
