@@ -84,3 +84,13 @@ those seconds, no messages will be processed from the partitions owned by the de
 consumer. When closing a consumer cleanly, the consumer will notify the group
 coordinator that it is leaving, and the group coordinator will trigger a rebalance
 immediately, reducing the gap in processing.
+
+Running Demo:
+Producer:
+```
+http://localhost:8888/kafka-web/send/producer
+```
+Consumer: 
+```
+http://localhost:8888/kafka-web/receive/consumer
+```
