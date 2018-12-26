@@ -1,61 +1,53 @@
-# KAFKA DEMO - CONSUMER CONFIG
+# KAFKA DEMO - COMMIT AND OFFSET
 [![Build Status](https://travis-ci.org/joemccann/dillinger.svg?branch=master)](https://travis-ci.org/joemccann/dillinger)
 ** No Code Sample**
 #### Consumers config
-properties—just the mandatory bootstrap.servers, group.id,
-key.deserializer, and value.deserializer.
+one of Kafka’s unique characteristics is that it does not track acknowledgments from consumers the way
+many JMS queues do. Instead, it allows consumers to use Kafka to track their position (offset) in each partition.
+We call the action of updating the current position in the partition a **commit**.
+How does a consumer commit an offset? It produces a message to Kafka, to a special
+__consumer_offsets topic, with the committed offset for each partition.
+However,
+if a consumer crashes or a new consumer joins the consumer group, this will
+trigger a rebalance. After a rebalance, each consumer may be assigned a new set of
+partitions than the one it processed before. In order to know where to pick up the
+work, the consumer will read the latest committed offset of each partition and continue
+from there.
 
-**fetch.min.bytes**
-This property allows a consumer to specify the minimum amount of data that it
-wants to receive from the broker when fetching records. If a broker receives a request
-for records from a consumer but the new records amount to fewer bytes than
-min.fetch.bytes, the broker will wait until more messages are available before sending
-the records back to the consumer.
+If the committed offset is smaller than the offset of the last message the client processed,
+the messages between the last processed offset and the committed offset will
+be processed twice.
 
-**fetch.max.wait.ms**
-By setting fetch.min.bytes, you tell Kafka to wait until it has enough data to send
-before responding to the consumer. fetch.max.wait.ms lets you control how long to
-wait.
+*
+If the committed offset is larger than the offset of the last message the client actually
+processed, all messages between the last processed offset and the committed offset
+will be missed by the consumer group.
 
-**max.partition.fetch.bytes**
-This property controls the maximum number of bytes the server will return per partition.
-The default is 1 MB, which means that when KafkaConsumer.poll() returns
-ConsumerRecords, the record object will use at most max.partition.fetch.bytes
-per partition assigned to the consumer.
-
-**partition.assignment.strategy**
-We learned that partitions are assigned to consumers in a consumer group. A
-PartitionAssignor is a class that, given consumers and topics they subscribed to,
-decides which partitions will be assigned to which consumer
-[link](https://medium.com/@anyili0928/what-i-have-learned-from-kafka-partition-assignment-strategy-799fdf15d3ab)
-
-##### Range
-Assigns to each consumer a consecutive subset of partitions from each topic it
-subscribes to.
-![Range](https://i.imgur.com/MJgRTG5.png)
-
-Because each topic has an uneven number of partitions and the assignment
-is done for each topic independently, the first consumer ends up with more
-partitions than the second. This happens whenever Range assignment is used and
-the number of consumers does not divide the number of partitions in each topic
-neatly.
+####  Automatic Commit
+The easiest way to commit offsets is to allow the consumer to do it for you. If you
+configure enable.auto.commit=true, then every five seconds the consumer will
+commit the largest offset your client received from poll(). The five-second interval
+is the default and is controlled by setting auto.commit.interval.ms. Just like everything
+else in the consumer, the automatic commits are driven by the poll loop. Whenever
+you poll, the consumer checks if it
+Consider that, by default, automatic commits occur every five seconds. Suppose that
+we are three seconds after the most recent commit and a rebalance is triggered. After
+the rebalancing, all consumers will start consuming from the last offset committed. In
+this case, the offset is three seconds old, so all the events that arrived in those three
+seconds will be processed twice. It is possible to configure the commit interval to
+commit more frequently and reduce the window in which records will be duplicated,
+but it is impossible to completely eliminate them.
 
 
-#####  RoundRobin
+####  Commit Current Offset
+Most developers exercise more control over the time at which offsets are committed
+—both to eliminate the possibility of missing messages and to reduce the number of
+messages duplicated during rebalancing. The consumer API has the option of committing
+the current offset .but it may cause re reading in msg when rebalance occured. 
 
-Takes all the partitions from all subscribed topics and assigns them to consumers
-sequentially,
+By setting auto.commit.offset=false
 
-![](https://i.imgur.com/09oepZ2.png)
+there are two way to commit offset 
+1. Sync (ref code)
+2. Async (ref code)
 
-RoundRobin assignment will end up with all consumers having
-the same number of partitions (or at most 1 partition difference).
-
-The partition.assignment.strategy allows you to choose a partition-assignment
-strategy. The default is org.apache.kafka.clients.consumer.RangeAssignor,
-which implements the Range strategy described above. You can replace it with
-org.apache.kafka.clients.consumer.RoundRobinAssignor.
-
-**client.id**
-This can be any string, and will be used by the brokers to identify messages sent from
-the client. It is used in logging and metrics, and for quotas.

@@ -19,7 +19,9 @@ public class ApacheKafkaWebController {
     KafkaSender kafkaSender;
 
     @Autowired
-    KafkaReceiver kafkaReceiver;
+    @Qualifier("kafkaSyncOffsetReceiverImpl")
+    KafkaReceiver kafkaSyncOffsetReceiverImpl;
+
 
     @GetMapping(value = "/send/producer")
     public String producer() {
@@ -30,7 +32,7 @@ public class ApacheKafkaWebController {
 
     @GetMapping(value = "/receive/consumer")
     public String consumer() {
-        kafkaReceiver.receive();
+        kafkaSyncOffsetReceiverImpl.receive();
 
         return "Terminated ";
     }
